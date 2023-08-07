@@ -67,9 +67,9 @@ async def delete(interaction, handshakedomain: str):
 @tree.command(name = "list", description = "List all Handshake mirrors")
 async def list(interaction):
     print("Listing mirrors...")
-    # Get user from interaction
+    # Verify user is bot owner
     user = interaction.user
-    if user.id != 892672018917519370:
+    if user != interaction.client.application.owner:
         await interaction.response.send_message("You don't have permission to do that.", ephemeral=True)
         print(user + " tried to list mirrors.")
         return
@@ -78,7 +78,7 @@ async def list(interaction):
     files = os.listdir("/etc/nginx/sites-available")
     # Remove default
     files.remove("default")
-    await interaction.response.send_message("Here are all the mirrors:\n" + "\n".join(files))
+    await interaction.response.send_message("Here are all the mirrors:\n" + "\n".join(files), ephemeral=True)
     
 @tree.command(name = "tlsa", description = "Get the TLSA record for an existing Handshake domain")
 async def tlsa(interaction, handshakedomain: str):
