@@ -13,7 +13,7 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 icann_regex = r'^https://[a-z0-9]+(\.[a-z0-9]+)+(/[a-zA-Z0-9-.]*)*$'
-handshake_regex = r'^[a-z0-9]+$'
+handshake_regex = r'^[a-z0-9]+(\.[a-z0-9]+)*$'
 
 @tree.command(name = "mirror", description = "Create a mirror of an ICANN site on a Handshake domain")
 async def mirror(interaction, handshakedomain: str, icannurl: str):
@@ -157,11 +157,6 @@ async def gitpull(interaction, handshakedomain: str):
 
     await user.send("Changes pulled for " + handshakedomain + "!")
     
-
-
-
-    
-
 
 def get_tlsa(input_string):
     lines = input_string.split("\n")
