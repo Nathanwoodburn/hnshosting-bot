@@ -13,6 +13,11 @@ sudo apt update
 sudo apt install nginx -y
 ```
 
+Add permissions to run the bash scripts
+```sh
+chmod +x *.sh
+```
+
 ## Run 
 
 You can run the bot with
