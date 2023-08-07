@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import discord
 from discord import app_commands
+import re
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -11,6 +12,9 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
+icann_regex = r'^https://[a-z0-9]+(\.[a-z0-9]+)+(/[a-zA-Z0-9-.]*)*$'
+handshake_regex = r'^[a-z0-9]+$'
+
 @tree.command(name = "mirror", description = "Create a mirror of an ICANN site on a Handshake domain")
 async def mirror(interaction, handshakedomain: str, icannurl: str):
     print("Creating mirror to " + icannurl + " from " + handshakedomain + "...")
@@ -18,7 +22,16 @@ async def mirror(interaction, handshakedomain: str, icannurl: str):
         await interaction.response.send_message("Please use https:// for the ICANN URL", ephemeral=True)
         return
     
+    if not re.match(icann_regex, icannurl):
+        await interaction.response.send_message("Please use a valid ICANN URL", ephemeral=True)
+        return
+    if not re.match(handshake_regex, handshakedomain):
+        await interaction.response.send_message("Please use a valid Handshake domain", ephemeral=True)
+        return
+
+
     await interaction.response.send_message("Creating mirror to " + icannurl + " from " + handshakedomain + "..." + "\nCheck your DM for the status of your mirror.", ephemeral=True)
+
     # Get user from interaction
     user = interaction.user
     handshakedomain_str = str(handshakedomain)
@@ -45,6 +58,10 @@ async def mirror(interaction, handshakedomain: str, icannurl: str):
 @tree.command(name = "delete", description = "Delete a Handshake domain from the system")
 async def delete(interaction, handshakedomain: str):
     print("Deleting " + handshakedomain + "...")
+
+    if not re.match(handshake_regex, handshakedomain):
+        await interaction.response.send_message("Please use a valid Handshake domain", ephemeral=True)
+        return
     await interaction.response.send_message("Deleting " + handshakedomain + "..." + "\nCheck your DM for status.", ephemeral=True)
     # Get user from interaction
     user = interaction.user
@@ -82,6 +99,10 @@ async def list(interaction):
     
 @tree.command(name = "tlsa", description = "Get the TLSA record for an existing Handshake domain")
 async def tlsa(interaction, handshakedomain: str):
+    if not re.match(handshake_regex, handshakedomain):
+        await interaction.response.send_message("Please use a valid Handshake domain", ephemeral=True)
+        return
+
     print("Getting TLSA record for " + handshakedomain + "...")
     # Get user from interaction
     output = subprocess.check_output(['./tlsa.sh', handshakedomain], stderr=subprocess.STDOUT, text=True)
@@ -89,10 +110,15 @@ async def tlsa(interaction, handshakedomain: str):
 
 @tree.command(name = "git", description = "Create a website from a git repo of html files")
 async def git(interaction, handshakedomain: str, giturl: str):
-    print("Creating website from " + giturl + " on " + handshakedomain + "...")
-    if not giturl.startswith("https://"):
-        await interaction.response.send_message("Please use https:// for the git URL", ephemeral=True)
+    if not re.match(handshake_regex, handshakedomain):
+        await interaction.response.send_message("Please use a valid Handshake domain", ephemeral=True)
         return
+    
+    if not re.match(icann_regex, giturl):
+        await interaction.response.send_message("Please use a valid git URL\nThis should be a https url", ephemeral=True)
+        return
+
+    print("Creating website from " + giturl + " on " + handshakedomain + "...")
     await interaction.response.send_message("Creating website from " + giturl + " on " + handshakedomain + "..." + "\nCheck your DM for the status of your website.", ephemeral=True)
     user = interaction.user
     handshakedomain_str = str(handshakedomain)
@@ -113,6 +139,9 @@ async def git(interaction, handshakedomain: str, giturl: str):
 
 @tree.command(name = "gitpull", description = "Get the latest changes from a git repo of html files")
 async def gitpull(interaction, handshakedomain: str):
+    if not re.match(handshake_regex, handshakedomain):
+        await interaction.response.send_message("Please use a valid Handshake domain", ephemeral=True)
+        return
     print("Pulling latest changes from " + handshakedomain + "...")
     await interaction.response.send_message("Pulling changes for " + handshakedomain + "...", ephemeral=True)
     user = interaction.user
